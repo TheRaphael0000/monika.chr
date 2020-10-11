@@ -1,5 +1,6 @@
 import re
 import base64
+import os
 
 import cv2
 import numpy as np
@@ -9,10 +10,13 @@ import scipy.signal as signal
 
 from PIL import Image
 
+input_folder = "chr"
+output_folder = "out"
+
 
 def monika():
     # Open file image file
-    img = Image.open("monika.chr")
+    img = Image.open(f"{input_folder}/monika.chr")
     # Crop to binary data
     img = img.crop(box=(330, 330, 470, 470))
     imgdata = np.asarray(img)
@@ -31,12 +35,12 @@ def monika():
     # Decode the message from base64
     output = base64.b64decode(b)
     # Write it in a file
-    open("monika.txt", "wb").write(output)
+    open(f"{output_folder}/monika.txt", "wb").write(output)
 
 
 def natsuki():
     # Open the image file
-    img = cv2.imread("natsuki.chr")
+    img = cv2.imread(f"{input_folder}/natsuki.chr")
     # Rotate it to the left since cv2 use the left has the center
     img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
     # Inverse the polar coordinates
@@ -45,21 +49,21 @@ def natsuki():
     img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
     # Inverse the colors
     img = ~img
-    cv2.imwrite("natsuki.jpeg", img)
+    cv2.imwrite(f"{output_folder}/natsuki.jpeg", img)
 
 
 def yuri():
     # Open the text file
-    str = open("yuri.chr").read()
+    str = open(f"{input_folder}/yuri.chr").read()
     # Decode the base64 text
     b = base64.b64decode(str)
     # Write it in a file
-    open("yuri.txt", "wb").write(b)
+    open(f"{output_folder}/yuri.txt", "wb").write(b)
 
 
 def sayori():
     # Open the audio file
-    data, rate = sf.read("sayori.chr")
+    data, rate = sf.read(f"{input_folder}/sayori.chr")
     # Create the spectrogram of the audio file
     f, t, Sxx = signal.spectrogram(data, rate, window=signal.get_window(
         "hann", 2**12), noverlap=2**12 - 2**10)
@@ -71,27 +75,39 @@ def sayori():
     plt.yscale("log")
     plt.axis("off")
     # Save it
-    plt.savefig("sayori.png", bbox_inches="tight")
+    plt.savefig(f"{output_folder}/sayori.png", bbox_inches="tight")
 
     # Post processing
-    img = cv2.imread("sayori.png", 0)
+    img = cv2.imread(f"{output_folder}/sayori.png", 0)
     # Fill the holes
     kernel = np.ones((10, 10), np.uint8)
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     # Thresholding
     retval, img = cv2.threshold(img, 127, 255, type=cv2.THRESH_OTSU)
     # Write back the image
-    cv2.imwrite("sayori.png", img)
+    cv2.imwrite(f"{output_folder}/sayori.png", img)
 
     # Read the qr code
     detector = cv2.QRCodeDetector()
     data, bbox, straight_qrcode = detector.detectAndDecode(img)
     # Save the data into a file
-    open("sayori.txt", "w+").write(data)
+    open(f"{output_folder}/sayori.txt", "w+").write(data)
 
 
 if __name__ == "__main__":
+    try:
+        print(f"Creating '{output_folder}' folder.")
+        os.mkdir(f"{output_folder}")
+    except FileExistsError:
+        print(f"'{output_folder}' folder already exist !")
+
+    print(f"Using '{output_folder}' folder for outputs.")
+
+    print("Decrypting monika.chr")
     monika()
+    print("Decrypting natsuki.chr")
     natsuki()
+    print("Decrypting yuri.chr")
     yuri()
+    print("Decrypting sayori.chr")
     sayori()
