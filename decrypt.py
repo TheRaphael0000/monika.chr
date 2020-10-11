@@ -1,6 +1,9 @@
 import re
 import base64
 import os
+import itertools
+import math
+import string
 
 import cv2
 import numpy as np
@@ -11,6 +14,7 @@ import scipy.signal as signal
 from PIL import Image
 
 input_folder = "chr"
+misc_folder = "misc"
 output_folder = "out"
 
 
@@ -94,6 +98,54 @@ def sayori():
     open(f"{output_folder}/sayori.txt", "w+").write(data)
 
 
+def have_a_nice_weekend():
+    # Loading the file
+    str = open("misc/have a nice weekend").read()
+
+    # creating a inverse vigenere lookup table
+    # format : m = inverse_tabula_recta[(k, c)]
+    alphabet = string.ascii_lowercase
+    grid = list(itertools.product(alphabet, repeat=2))
+    inverse_tabula_recta = {}
+    for cell in grid:
+        index = (alphabet.index(cell[1]) - alphabet.index(cell[0]))
+        inverse_tabula_recta[cell] = alphabet[index % len(alphabet)]
+
+    # Using libitina as the vigenere's key (see sayori.chr)
+    key = "libitina"
+    cipher = str
+
+    # Special vigenere lookup
+    msg = ""
+    index_key = 0
+    index_cipher = 0
+    while index_cipher < len(cipher):
+        k = key[index_key % len(key)]
+        c = cipher[index_cipher]
+
+        # Keep the case
+        if c in string.ascii_lowercase:
+            m = inverse_tabula_recta[(k, c)]
+            index_key += 1
+        elif c in string.ascii_uppercase:
+            m = inverse_tabula_recta[(k, c.lower())].upper()
+            index_key += 1
+        # Skip the non-literal
+        else:
+            m = c
+        index_cipher += 1
+        msg += m
+
+    # Convert the output from b64 to bytes strings can be read in utf-8 / ascii
+    open(f"{output_folder}/have a nice weekend.txt",
+         "wb+").write(base64.b64decode(msg))
+
+
+def natsuki_poem():
+    # todo
+    print("#todo")
+
+
 if __name__ == "__main__":
     try:
         print(f"Creating '{output_folder}' folder.")
@@ -111,3 +163,7 @@ if __name__ == "__main__":
     yuri()
     print("Decrypting sayori.chr")
     sayori()
+    print("Decrypting have a nice weekend")
+    have_a_nice_weekend()
+    print("Decrypting natsuki_poem")
+    natsuki_poem()
