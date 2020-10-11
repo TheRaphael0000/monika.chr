@@ -11,7 +11,7 @@ from PIL import Image
 
 
 def monika():
-    # Open file
+    # Open file image file
     img = Image.open("monika.chr")
     # Crop to binary data
     img = img.crop(box=(330, 330, 470, 470))
@@ -35,12 +35,21 @@ def monika():
 
 
 def natsuki():
-    # todo
-    pass
+    # Open the image file
+    img = cv2.imread("natsuki.chr")
+    # Rotate it to the left since cv2 use the left has the center
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # Inverse the polar coordinates
+    img = cv2.linearPolar(
+        img, (img.shape[1] / 2, img.shape[0] / 2), 360, cv2.WARP_INVERSE_MAP)
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    # Inverse the colors
+    img = ~img
+    cv2.imwrite("natsuki.jpeg", img)
 
 
 def yuri():
-    # Open the file
+    # Open the text file
     str = open("yuri.chr").read()
     # Decode the base64 text
     b = base64.b64decode(str)
@@ -79,6 +88,7 @@ def sayori():
     data, bbox, straight_qrcode = detector.detectAndDecode(img)
     # Save the data into a file
     open("sayori.txt", "w+").write(data)
+
 
 if __name__ == "__main__":
     monika()
