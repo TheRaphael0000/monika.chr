@@ -2,7 +2,6 @@ import re
 import base64
 import os
 import itertools
-import math
 import string
 
 import cv2
@@ -142,8 +141,20 @@ def have_a_nice_weekend():
 
 
 def natsuki_poem():
-    # todo
-    print("#todo")
+    # Open the text file
+    str = open(f"{misc_folder}/natsuki_poem.txt").read()
+
+    lines = str.split("\n")
+    title = lines[0]
+    text = "".join(lines[1:])
+    # Decode the base64 text
+    title = base64.b64decode(title)
+    text = base64.b64decode(text)
+    # Write it in a file
+    with open(f"{output_folder}/natsuki_poem.txt", "wb") as file:
+        file.write(title)
+        file.write(b"\n")
+        file.write(text)
 
 
 if __name__ == "__main__":
